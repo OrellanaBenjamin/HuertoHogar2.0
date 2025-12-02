@@ -160,5 +160,50 @@ val mockProducts = listOf(
         stock = 65,
         imagen = "granola.png",
         categoria = "Productos Orgánicos"
+    ),
+    Product(
+        codigo = "CAJA001",
+        nombre = "Caja Mixta de Verduras",
+        descripcion = "Caja completa con: 1kg de zanahorias orgánicas, 1kg de tomates cherry, 500g de lechugas variadas, 500g de espinacas frescas y 1kg de papas orgánicas. Ideal para 4-5 personas por semana.",
+        precio = 15990.0,
+        stock = 25,
+        imagen = "no_disponible.png",
+        categoria = "Productos Orgánicos"
+    ),
+    Product(
+        codigo = "CAJA002",
+        nombre = "Caja de Frutas de Temporada",
+        descripcion = "Incluye: 1kg de manzanas orgánicas, 1kg de peras, 500g de uvas, 6 kiwis, 4 naranjas y 2 paltas. Frutas frescas de temporada seleccionadas.",
+        precio = 18900.0,
+        stock = 20,
+        imagen = "no_disponible.png",
+        categoria = "Frutas Frescas"
+    ),
+    Product(
+        codigo = "CAJA003",
+        nombre = "Caja Familiar Completa",
+        descripcion = "Pack familiar con: 2kg de zanahorias, 1.5kg de tomates, 1kg de pimentones variados, 1kg de cebollas, 500g de ajos, 1kg de papas y 500g de porotos verdes. Suficiente para 7 días.",
+        precio = 24990.0,
+        stock = 15,
+        imagen = "no_disponible.png",
+        categoria = "Verduras Orgánicas"
+    ),
+    Product(
+        codigo = "CAJA004",
+        nombre = "Caja Gourmet de Aceites",
+        descripcion = "Selección premium: 2 botellas de Aceite de Oliva Extra Virgen 500ml, 1 botella de aceite de coco orgánico 250ml, 1 botella de aceite de aguacate 250ml.",
+        precio = 35990.0,
+        stock = 12,
+        imagen = "no_disponible.png",
+        categoria = "Productos Orgánicos"
+    ),
+    Product(
+        codigo = "CAJA005",
+        nombre = "Caja Ensaladas Frescas",
+        descripcion = "Perfecta para ensaladas: 3 lechugas variadas, 500g de rúcula, 500g de espinaca baby, 300g de mix de hojas verdes, 250g de berros y germinados. Rinde 10-12 ensaladas.",
+        precio = 12990.0,
+        stock = 30,
+        imagen = "no_disponible.png",
+        categoria = "Verduras Orgánicas"
     )
 )

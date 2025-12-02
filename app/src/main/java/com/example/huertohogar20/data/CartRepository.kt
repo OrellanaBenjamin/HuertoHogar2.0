@@ -33,6 +33,9 @@ class CartRepository(context: Context) {
 
     suspend fun getItemByCode(productCode: String): CartItem? = dao.getItemByCode(productCode)
 
+    suspend fun updateQuantity(productCode: String, newQuantity: Int) {
+        dao.updateQuantity(productCode, newQuantity)
+    }
 
     suspend fun insertOrderItem(orderItem: OrderItem) {
         dao.insertOrderItem(orderItem)

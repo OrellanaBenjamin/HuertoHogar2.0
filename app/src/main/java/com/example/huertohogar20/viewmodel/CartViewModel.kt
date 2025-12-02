@@ -42,6 +42,12 @@ class CartViewModel(
             loadCartItems()
         }
     }
+    fun updateQuantity(productCode: String, newQuantity: Int) {
+        viewModelScope.launch {
+            repository.updateQuantity(productCode, newQuantity)
+            loadCartItems()
+        }
+    }
 
     fun clearCart() {
         viewModelScope.launch {

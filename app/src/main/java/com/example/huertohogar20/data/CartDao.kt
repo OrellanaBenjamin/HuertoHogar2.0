@@ -28,4 +28,9 @@ interface CartDao {
 
     @Query("SELECT * FROM order_items WHERE orderId = :orderId")
     suspend fun getOrderItemsByOrderId(orderId: Long): List<OrderItem>
+
+    @Query("UPDATE cart_items SET quantity = :newQuantity WHERE productCode = :productCode")
+    suspend fun updateQuantity(productCode: String, newQuantity: Int)
+
+
 }

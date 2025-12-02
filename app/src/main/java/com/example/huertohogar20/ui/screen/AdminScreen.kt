@@ -3,7 +3,7 @@ package com.example.huertohogar20.ui.screen
 import android.app.Application
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items  // ✅ IMPORTANTE
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -13,7 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.huertohogar20.model.Order  // ✅ IMPORTANTE
+import com.example.huertohogar20.model.Order
 import com.example.huertohogar20.model.Product
 import com.example.huertohogar20.viewmodel.OrderViewModel
 import com.example.huertohogar20.viewmodel.ProductsViewModel
@@ -109,14 +109,11 @@ fun AdminScreen(
                 1 -> OrdersTab(orders = orders)
                 2 -> StatsTab(
                     totalProducts = products.size,
-                    totalOrders = orders.size,
-                    totalRevenue = orders.sumOf { order ->
-                        order.items.sumOf { item ->
-                            item.precio * item.cantidad
-                        }
-                    }
+                    totalOrders = orders.size
                 )
             }
+        }
+    }
 
     if (showAddDialog) {
         ProductFormDialog(
@@ -274,63 +271,62 @@ fun OrdersTab(orders: List<Order>) {
     }
 }
 
-        @Composable
-        fun OrderAdminCard(order: Order) {
-            // Calcular total fuera del Composable
-            val totalOrder = remember(order) {
-                order.items.sumOf { item ->
-                    item.precio * item.cantidad
-                }
-            }
-
-            Card(
+@Composable
+fun OrderAdminCard(order: Order) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp)
+        ) {
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer
-                )
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(12.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            text = "Pedido #${order.id}",
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        Text(
-                            text = order.estado,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = when (order.estado) {
-                                "Entregado" -> MaterialTheme.colorScheme.primary
-                                "En camino" -> MaterialTheme.colorScheme.tertiary
-                                else -> MaterialTheme.colorScheme.secondary
-                            }
-                        )
+                Text(
+                    text = "Pedido #${order.id}",
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Text(
+                    text = order.estado,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = when (order.estado) {
+                        "Entregado" -> MaterialTheme.colorScheme.primary
+                        "En camino" -> MaterialTheme.colorScheme.tertiary
+                        else -> MaterialTheme.colorScheme.secondary
                     }
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        text = "Dirección: ${order.direccion}",
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                    Text(
-                        text = "Total: $${"%.2f".format(totalOrder)}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
+                )
             }
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = "Usuario: ${order.userId}",
+                style = MaterialTheme.typography.bodySmall
+            )
+            Text(
+                text = "Dirección: ${order.direccion}",
+                style = MaterialTheme.typography.bodySmall
+            )
+            Text(
+                text = "Pago: ${order.pagoEstado}",
+                style = MaterialTheme.typography.bodySmall,
+                color = if (order.pagoEstado == "completado")
+                    MaterialTheme.colorScheme.primary
+                else
+                    MaterialTheme.colorScheme.secondary
+            )
         }
+    }
+}
 
 @Composable
 fun StatsTab(
     totalProducts: Int,
-    totalOrders: Int,
-    totalRevenue: Double
+    totalOrders: Int
 ) {
     Column(
         Modifier
@@ -358,8 +354,8 @@ fun StatsTab(
         )
 
         StatCard(
-            title = "Ingresos Totales",
-            value = "$${"%.2f".format(totalRevenue)}",
+            title = "Sistema",
+            value = "Activo",
             icon = Icons.Default.Info,
             color = MaterialTheme.colorScheme.tertiary
         )

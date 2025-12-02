@@ -2,6 +2,7 @@ package com.example.huertohogar20
 
 import android.app.Application
 import android.os.Bundle
+import android.preference.PreferenceManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -37,12 +38,14 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        Configuration.getInstance().apply {
-            userAgentValue = "HuertoHogar/1.0 (Android App)"
-            osmdroidBasePath = applicationContext.filesDir
-        }
+        Configuration.getInstance().load(
+            applicationContext,
+            PreferenceManager.getDefaultSharedPreferences(applicationContext)
+        )
+        Configuration.getInstance().userAgentValue = packageName
 
         enableEdgeToEdge()
+
         setContent {
             LaHuertaHogarTheme {
                 MainApp()
@@ -97,7 +100,6 @@ fun MainApp() {
             composable("home") {
                 HomeScreen(navController = navController)
             }
-
             composable("catalogo") {
                 CatalogScreen(navController = navController)
             }
@@ -114,7 +116,6 @@ fun MainApp() {
                     }
                 )
             }
-
             composable("edit_profile") {
                 EditProfileScreen(
                     onSave = { updatedProfile ->
@@ -137,7 +138,10 @@ fun MainApp() {
                 )
             }
             composable("quienessomos") {
-                QuienesSomosScreen()
+                QuienesSomosScreen(navController = navController)
+            }
+            composable("legal_terms") {
+                LegalTermsScreen(navController = navController)
             }
             composable("error") {
                 ErrorScreen(
@@ -192,7 +196,6 @@ fun MainApp() {
         }
     }
 }
-
 
 fun titleForRoute(route: String): String = when (route) {
     "welcome" -> "Bienvenido"

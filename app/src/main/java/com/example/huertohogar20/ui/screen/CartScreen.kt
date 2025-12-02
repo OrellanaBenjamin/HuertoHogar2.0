@@ -6,8 +6,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -138,19 +140,59 @@ fun CartScreen(
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
                                     Text(
-                                        text = "Cantidad: ${item.quantity}",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                    Text(
                                         text = "Subtotal: \$${getProductPrice(item.productCode, products) * item.quantity}",
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = MaterialTheme.colorScheme.primary
                                     )
                                 }
 
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        IconButton(
+                                            onClick = {
+                                                if (item.quantity > 1) {
+                                                    cartViewModel.updateQuantity(item.productCode, item.quantity - 1)
+                                                }
+                                            },
+                                            modifier = Modifier.size(32.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Remove,
+                                                contentDescription = "Disminuir"
+                                            )
+                                        }
+
+                                        Text(
+                                            text = "${item.quantity}",
+                                            style = MaterialTheme.typography.titleMedium,
+                                            modifier = Modifier.widthIn(min = 30.dp)
+                                        )
+
+                                        IconButton(
+                                            onClick = {
+                                                val product = products.find { it.codigo == item.productCode }
+                                                if (product != null && item.quantity < product.stock) {
+                                                    cartViewModel.updateQuantity(item.productCode, item.quantity + 1)
+                                                }
+                                            },
+                                            modifier = Modifier.size(32.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Add,
+                                                contentDescription = "Aumentar"
+                                            )
+                                        }
+                                    }
+                                }
+
                                 IconButton(onClick = { cartViewModel.remove(item) }) {
-                                    Icon(
+                                Icon(
                                         imageVector = Icons.Default.Delete,
                                         contentDescription = "Eliminar",
                                         tint = MaterialTheme.colorScheme.error

@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -14,9 +15,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.huertohogar20.model.Sucursal
 import com.example.huertohogar20.ui.components.OsmdroidSucursalMap
+import androidx.navigation.NavController
 
 @Composable
-fun QuienesSomosScreen() {
+fun QuienesSomosScreen(navController: androidx.navigation.NavController) {
     val sucursales = listOf(
         Sucursal("Sucursal Santiago", "Santiago", -33.45, -70.66),
         Sucursal("Sucursal Puerto Montt", "Puerto Montt", -41.32, -72.09),
@@ -84,6 +86,36 @@ fun QuienesSomosScreen() {
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color(0xFF666666)
                     )
+                    Spacer(Modifier.height(24.dp))
+
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer
+                        )
+                    ) {
+                        Column(Modifier.padding(16.dp)) {
+                            Text(
+                                "Información Legal",
+                                style = MaterialTheme.typography.titleLarge,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer
+                            )
+                            Spacer(Modifier.height(8.dp))
+                            Text(
+                                "HuertoHogar SpA\nRUT: 77.123.456-7\nDirección: Av. Providencia 1234, Santiago\nEmail: contacto@huertohogar.cl\nTeléfono: +56 9 8765 4321",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            Spacer(Modifier.height(12.dp))
+                            Button(
+                                onClick = { navController.navigate("legal_terms") },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Icon(Icons.Default.Info, contentDescription = null)
+                                Spacer(Modifier.width(8.dp))
+                                Text("Ver Términos Legales y Políticas")
+                            }
+                        }
+                    }
                 }
             }
         }

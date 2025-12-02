@@ -20,7 +20,7 @@ import com.example.huertohogar20.model.User
         User::class,
         Comment::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
