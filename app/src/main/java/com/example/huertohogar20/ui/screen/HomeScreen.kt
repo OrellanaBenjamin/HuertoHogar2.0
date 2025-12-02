@@ -123,10 +123,9 @@ fun HomeScreen(navController: NavController) {
         }
 
         Spacer(Modifier.height(32.dp))
-
-        // BOTÓN PRINCIPAL
+        
         Button(
-            onClick = { navController.navigate("catalog") },
+            onClick = { navController.navigate("catalogo") },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
