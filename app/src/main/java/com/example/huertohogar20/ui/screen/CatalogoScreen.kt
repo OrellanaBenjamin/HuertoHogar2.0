@@ -19,17 +19,20 @@ import androidx.navigation.NavController
 import com.example.huertohogar20.model.categorias
 import com.example.huertohogar20.ui.components.ProductCard
 import com.example.huertohogar20.viewmodel.CartViewModel
+import com.example.huertohogar20.viewmodel.CartViewModelFactory
 import com.example.huertohogar20.viewmodel.ProductsViewModel
 import com.example.huertohogar20.viewmodel.ProductsViewModelFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CatalogScreen(
-    navController: NavController,
-    cartViewModel: CartViewModel = viewModel()
-) {
+fun CatalogScreen(navController: NavController) {
     val context = LocalContext.current
     val application = context.applicationContext as Application
+
+    // CORREGIDO: Usar Factory para CartViewModel
+    val cartViewModel: CartViewModel = viewModel(
+        factory = CartViewModelFactory(application)
+    )
 
     val productsViewModel: ProductsViewModel = viewModel(
         factory = ProductsViewModelFactory(application)
@@ -45,7 +48,6 @@ fun CatalogScreen(
         productsViewModel.loadProducts()
     }
 
-
     val filteredProducts = products.filter { product ->
         val matchesSearch = searchQuery.isEmpty() ||
                 product.nombre.contains(searchQuery, ignoreCase = true) ||
@@ -56,7 +58,6 @@ fun CatalogScreen(
 
         matchesSearch && matchesCategory
     }
-
 
     val sortedProducts = when (sortOrder) {
         "asc" -> filteredProducts.sortedBy { it.precio }

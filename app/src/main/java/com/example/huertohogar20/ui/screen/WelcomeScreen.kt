@@ -207,13 +207,39 @@ fun LoginForm(onLogin: (String, String) -> Unit) {
         }
 
         if (showReset) {
+            var resetEmail by remember { mutableStateOf("") }
+
             AlertDialog(
                 onDismissRequest = { showReset = false },
                 title = { Text("Recuperar contraseña") },
-                text = { Text("Por favor ingresa tu correo y sigue las instrucciones del mail para restablecer tu contraseña.") },
+                text = {
+                    Column {
+                        Text("Ingresa tu correo electrónico y te enviaremos instrucciones para restablecer tu contraseña.")
+                        Spacer(Modifier.height(12.dp))
+                        OutlinedTextField(
+                            value = resetEmail,
+                            onValueChange = { resetEmail = it },
+                            label = { Text("Correo electrónico") },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                },
                 confirmButton = {
-                    Button(onClick = { showReset = false }) {
-                        Text("Aceptar")
+                    Button(
+                        onClick = {
+                            if (resetEmail.contains("@")) {
+                                // Aquí enviarías el email real
+                                showReset = false
+                            }
+                        }
+                    ) {
+                        Text("Enviar")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showReset = false }) {
+                        Text("Cancelar")
                     }
                 }
             )

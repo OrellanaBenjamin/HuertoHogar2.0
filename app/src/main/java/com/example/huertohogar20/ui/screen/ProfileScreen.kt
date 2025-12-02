@@ -3,18 +3,25 @@ package com.example.huertohogar20.ui.screen
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.huertohogar20.model.Order
 import com.example.huertohogar20.model.UserProfile
 import com.example.huertohogar20.state.globalUserProfile
 import com.example.huertohogar20.viewmodel.AuthViewModel
+import android.net.Uri
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,45 +41,50 @@ fun ProfileScreen(
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Foto de perfil
-        Image(
-            painter = painterResource(id = profile.avatarId),
-            contentDescription = "Foto de perfil",
-            modifier = Modifier
-                .size(100.dp)
-                .clip(CircleShape)
-        )
+        // Foto de perfil (con Coil si hay photoUri, sino avatar por defecto)
+        if (profile.photoUri.isNotEmpty()) {
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(Uri.parse(profile.photoUri))
+                    .crossfade(true)
+                    .build(),
+                contentDescription = "Foto de perfil",
+                modifier = Modifier
+                    .size(100.dp)
+                    .clip(CircleShape),
+                contentScale = ContentScale.Crop
+            )
+        } else {
+            Image(
+                painter = painterResource(id = profile.avatarId),
+                contentDescription = "Foto de perfil",
+                modifier = Modifier
+                    .size(100.dp)
+                    .clip(CircleShape)
+            )
+        }
+
         Spacer(Modifier.height(16.dp))
 
         // Información del usuario
         Text(
-            text = profile.nombre,
+            text = "${profile.nombre} ${profile.apellido}",  // CORREGIDO
             style = MaterialTheme.typography.headlineSmall,
             color = MaterialTheme.colorScheme.secondary
         )
-        Spacer(Modifier.height(4.dp))
-        Text(
-            text = profile.correo,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Spacer(Modifier.height(4.dp))
+        Spacer(Modifier.height(8.dp))
+
         Text(
             text = "Teléfono: ${profile.telefono}",
             style = MaterialTheme.typography.bodySmall
         )
         Spacer(Modifier.height(4.dp))
+
         Text(
             text = "Dirección: ${profile.direccion}",
             style = MaterialTheme.typography.bodySmall
         )
-        Spacer(Modifier.height(8.dp))
-        Text(
-            text = "Bio: ${profile.bio}",
-            style = MaterialTheme.typography.bodySmall
-        )
-
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(16.dp))
 
         // Botón Admin (solo si es admin)
         if (currentUser?.isAdmin == true) {

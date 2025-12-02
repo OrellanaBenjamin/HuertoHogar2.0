@@ -104,8 +104,11 @@ fun LoginScreen(
                     onClick = {
                         if (!emailError && !passwordError && email.isNotBlank() && password.isNotBlank()) {
                             globalUserProfile.value = UserProfile(
-                                nombre = "Usuario Ecológico",
-                                correo = email
+                                nombre = "",
+                                apellido = "",
+                                telefono = "",
+                                direccion = "",
+                                photoUri = ""
                             )
                             feedbackViewModel.showSnackbar("Login exitoso")
                             onLoginSuccess?.invoke()

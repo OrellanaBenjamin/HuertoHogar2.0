@@ -117,13 +117,14 @@ fun RegisterScreen(
                 Spacer(Modifier.height(18.dp))
                 Button(
                     onClick = {
-
                         if (!nombreError && !apellidoError && !emailError && !passwordError && !repeatError &&
                             nombre.isNotBlank() && apellido.isNotBlank() && email.isNotBlank() && password.isNotBlank() && repeatPassword.isNotBlank()) {
                             globalUserProfile.value = UserProfile(
                                 nombre = nombre,
                                 apellido = apellido,
-                                correo = email
+                                telefono = "",  // CORREGIDO
+                                direccion = "",
+                                photoUri = ""
                             )
                             feedbackViewModel.showSnackbar("Registro exitoso")
                             onRegisterSuccess?.invoke()

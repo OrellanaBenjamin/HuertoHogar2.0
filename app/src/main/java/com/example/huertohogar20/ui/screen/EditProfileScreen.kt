@@ -1,19 +1,24 @@
 package com.example.huertohogar20.ui.screen
 
-import androidx.compose.foundation.BorderStroke
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.example.huertohogar20.R
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.huertohogar20.model.UserProfile
 import com.example.huertohogar20.state.globalUserProfile
 
@@ -28,9 +33,17 @@ fun EditProfileScreen(
     var apellido by remember { mutableStateOf(profile.apellido) }
     var telefono by remember { mutableStateOf(profile.telefono) }
     var direccion by remember { mutableStateOf(profile.direccion) }
-    var bio by remember { mutableStateOf(profile.bio) }
-    var avatarId by remember { mutableStateOf(profile.avatarId) }  // NUEVO
+    var photoUri by remember { mutableStateOf<Uri?>(
+        if (profile.photoUri.isNotEmpty()) Uri.parse(profile.photoUri) else null
+    ) }
     var errorMsg by remember { mutableStateOf<String?>(null) }
+
+    // Picker de imagen
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri ->
+        photoUri = uri
+    }
 
     Column(
         modifier = Modifier
@@ -40,31 +53,49 @@ fun EditProfileScreen(
     ) {
         Text("Editar Perfil", style = MaterialTheme.typography.headlineMedium)
         Spacer(Modifier.height(20.dp))
-        Text(
-            "Selecciona tu avatar",
-            style = MaterialTheme.typography.labelLarge,
-            modifier = Modifier.padding(bottom = 12.dp)
-        )
 
-        Row(
+        // Foto de perfil
+        Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly
+                .size(120.dp)
+                .clip(CircleShape)
+                .clickable {
+                    launcher.launch(
+                        androidx.activity.result.PickVisualMediaRequest(
+                            ActivityResultContracts.PickVisualMedia.ImageOnly
+                        )
+                    )
+                },
+            contentAlignment = Alignment.Center
         ) {
-            AvatarOption(
-                avatarId = R.drawable.avatar_default,
-                isSelected = avatarId == R.drawable.avatar_default,
-                onClick = { avatarId = R.drawable.avatar_default }
-            )
-            AvatarOption(
-                avatarId = R.drawable.avatar_alt,
-                isSelected = avatarId == R.drawable.avatar_alt,
-                onClick = { avatarId = R.drawable.avatar_alt }
-            )
+            if (photoUri != null) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(photoUri)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = "Foto de perfil",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = "Foto de perfil",
+                    modifier = Modifier.size(80.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
         }
 
-        Spacer(Modifier.height(20.dp))
+        Text(
+            text = "Toca para cambiar foto",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.secondary,
+            modifier = Modifier.padding(top = 8.dp)
+        )
+
+        Spacer(Modifier.height(24.dp))
 
         OutlinedTextField(
             value = nombre,
@@ -95,15 +126,6 @@ fun EditProfileScreen(
             onValueChange = { direccion = it },
             label = { Text("Dirección") },
             modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(Modifier.height(12.dp))
-
-        OutlinedTextField(
-            value = bio,
-            onValueChange = { bio = it },
-            label = { Text("Bio") },
-            modifier = Modifier.fillMaxWidth(),
-            maxLines = 3
         )
         Spacer(Modifier.height(12.dp))
 
@@ -140,8 +162,7 @@ fun EditProfileScreen(
                         apellido = apellido,
                         telefono = telefono,
                         direccion = direccion,
-                        bio = bio,
-                        avatarId = avatarId
+                        photoUri = photoUri?.toString() ?: ""
                     )
                     onSave(updatedProfile)
                 },
@@ -150,46 +171,12 @@ fun EditProfileScreen(
                 Text("Guardar")
             }
 
-            Button(
+            OutlinedButton(
                 onClick = onCancel,
-                modifier = Modifier.weight(1f),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
-                )
+                modifier = Modifier.weight(1f)
             ) {
                 Text("Cancelar")
             }
         }
-    }
-}
-
-@Composable
-fun AvatarOption(
-    avatarId: Int,
-    isSelected: Boolean,
-    onClick: () -> Unit
-) {
-    val borderColor = if (isSelected) {
-        MaterialTheme.colorScheme.primary
-    } else {
-        MaterialTheme.colorScheme.outline
-    }
-
-    Card(
-        modifier = Modifier
-            .size(80.dp)
-            .clickable { onClick() },
-        shape = CircleShape,
-        border = BorderStroke(
-            width = if (isSelected) 4.dp else 1.dp,
-            color = borderColor
-        )
-    ) {
-        Image(
-            painter = painterResource(id = avatarId),
-            contentDescription = "Avatar opción",
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop
-        )
     }
 }

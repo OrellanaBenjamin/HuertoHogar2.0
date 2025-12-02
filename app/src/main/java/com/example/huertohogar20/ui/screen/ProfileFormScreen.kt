@@ -1,22 +1,28 @@
 package com.example.huertohogar20.ui.screen
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
-import com.example.huertohogar20.R
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.huertohogar20.model.UserProfile
 import com.example.huertohogar20.state.globalUserProfile
 
@@ -28,11 +34,19 @@ fun ProfileFormScreen(
     onSave: (UserProfile) -> Unit = { globalUserProfile.value = it }
 ) {
     var nombre by remember { mutableStateOf(initialProfile.nombre) }
-    var correo by remember { mutableStateOf(initialProfile.correo) }
+    var apellido by remember { mutableStateOf(initialProfile.apellido) }
     var telefono by remember { mutableStateOf(initialProfile.telefono) }
     var direccion by remember { mutableStateOf(initialProfile.direccion) }
-    var bio by remember { mutableStateOf(initialProfile.bio) }
-    var avatarId by remember { mutableStateOf(initialProfile.avatarId) }
+    var photoUri by remember { mutableStateOf<Uri?>(
+        if (initialProfile.photoUri.isNotEmpty()) Uri.parse(initialProfile.photoUri) else null
+    ) }
+
+    // Picker de imagen
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri ->
+        photoUri = uri
+    }
 
     Column(
         modifier = Modifier
@@ -41,18 +55,48 @@ fun ProfileFormScreen(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Avatar editable
-        Image(
-            painter = painterResource(id = avatarId),
-            contentDescription = "Foto de perfil",
+        // Foto de perfil con opción de cambiar
+        Box(
             modifier = Modifier
                 .size(120.dp)
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.secondaryContainer)
                 .clickable {
-                    avatarId = if (avatarId == R.drawable.avatar_default) R.drawable.avatar_alt else R.drawable.avatar_default
-                }
+                    launcher.launch(
+                        androidx.activity.result.PickVisualMediaRequest(
+                            ActivityResultContracts.PickVisualMedia.ImageOnly
+                        )
+                    )
+                },
+            contentAlignment = Alignment.Center
+        ) {
+            if (photoUri != null) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(photoUri)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = "Foto de perfil",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = "Foto de perfil",
+                    modifier = Modifier.size(80.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
+
+        Spacer(Modifier.height(8.dp))
+        Text(
+            text = "Toca para cambiar foto",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.secondary
         )
+
         Spacer(Modifier.height(12.dp))
         Text(
             text = "Editar perfil",
@@ -60,6 +104,7 @@ fun ProfileFormScreen(
             color = MaterialTheme.colorScheme.primary
         )
         Spacer(Modifier.height(16.dp))
+
         OutlinedTextField(
             value = nombre,
             onValueChange = { nombre = it },
@@ -71,11 +116,11 @@ fun ProfileFormScreen(
             )
         )
         Spacer(Modifier.height(10.dp))
+
         OutlinedTextField(
-            value = correo,
-            onValueChange = { correo = it },
-            label = { Text("Correo electrónico", style = MaterialTheme.typography.bodyMedium) },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+            value = apellido,
+            onValueChange = { apellido = it },
+            label = { Text("Apellido", style = MaterialTheme.typography.bodyMedium) },
             modifier = Modifier.fillMaxWidth(),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = MaterialTheme.colorScheme.primary,
@@ -83,6 +128,7 @@ fun ProfileFormScreen(
             )
         )
         Spacer(Modifier.height(10.dp))
+
         OutlinedTextField(
             value = telefono,
             onValueChange = { telefono = it },
@@ -95,6 +141,7 @@ fun ProfileFormScreen(
             )
         )
         Spacer(Modifier.height(10.dp))
+
         OutlinedTextField(
             value = direccion,
             onValueChange = { direccion = it },
@@ -105,39 +152,30 @@ fun ProfileFormScreen(
                 unfocusedBorderColor = MaterialTheme.colorScheme.outline
             )
         )
-        Spacer(Modifier.height(10.dp))
-        OutlinedTextField(
-            value = bio,
-            onValueChange = { bio = it },
-            label = { Text("Sobre ti", style = MaterialTheme.typography.bodyMedium) },
-            modifier = Modifier.fillMaxWidth(),
-            maxLines = 3,
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedBorderColor = MaterialTheme.colorScheme.outline
-            )
-        )
         Spacer(Modifier.height(11.dp))
-        Text(
-            text = "¿Olvidaste tu contraseña?",
-            color = MaterialTheme.colorScheme.primary,
-            style = MaterialTheme.typography.bodyMedium,
-            textDecoration = TextDecoration.Underline,
-            modifier = Modifier
-                .align(Alignment.End)
-                .clickable { onForgotPassword?.invoke() }
-        )
-        Spacer(Modifier.height(18.dp))
+
+        if (onForgotPassword != null) {
+            Text(
+                text = "¿Olvidaste tu contraseña?",
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.bodyMedium,
+                textDecoration = TextDecoration.Underline,
+                modifier = Modifier
+                    .align(Alignment.End)
+                    .clickable { onForgotPassword() }
+            )
+            Spacer(Modifier.height(18.dp))
+        }
+
         Button(
             onClick = {
                 onSave(
                     UserProfile(
                         nombre = nombre,
-                        correo = correo,
+                        apellido = apellido,
                         telefono = telefono,
                         direccion = direccion,
-                        bio = bio,
-                        avatarId = avatarId
+                        photoUri = photoUri?.toString() ?: ""
                     )
                 )
             },
