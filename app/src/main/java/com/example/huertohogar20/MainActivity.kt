@@ -89,7 +89,10 @@ fun MainApp() {
             modifier = Modifier.padding(innerPadding)
         ) {
             composable("welcome") {
-                WelcomeScreen(navController = navController)
+                WelcomeScreen(
+                    navController = navController,
+                    authViewModel = authViewModel
+                )
             }
             composable("home") {
                 HomeScreen(navController = navController)
@@ -99,23 +102,14 @@ fun MainApp() {
                 CatalogScreen(navController = navController)
             }
             composable("perfil") {
-                val userId = authViewModel.currentUser.value?.email ?: "invitado"
-
-                LaunchedEffect(userId) {
-                    orderViewModel.loadOrders(userId)
-                }
-
-                val ordersList by orderViewModel.orders.collectAsState()
-
                 ProfileScreen(
-                    orders = ordersList,
+                    orders = orders,
                     navController = navController,
                     authViewModel = authViewModel,
-                    onEditProfile = { navController.navigate("edit_profile") },
                     onLogout = {
                         authViewModel.logout()
                         navController.navigate("welcome") {
-                            popUpTo("home") { inclusive = true }
+                            popUpTo("welcome") { inclusive = true }
                         }
                     }
                 )
@@ -127,7 +121,9 @@ fun MainApp() {
                         globalUserProfile.value = updatedProfile
                         navController.popBackStack()
                     },
-                    onCancel = { navController.popBackStack() }
+                    onCancel = {
+                        navController.popBackStack()
+                    }
                 )
             }
             composable("carrito") {
@@ -191,7 +187,7 @@ fun MainApp() {
                 ProductDetailScreen(productCode = code)
             }
             composable("admin") {
-                AdminScreen()
+                AdminScreen(orderViewModel = orderViewModel)
             }
         }
     }

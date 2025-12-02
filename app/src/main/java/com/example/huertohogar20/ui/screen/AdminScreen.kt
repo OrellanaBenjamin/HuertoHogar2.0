@@ -3,11 +3,9 @@ package com.example.huertohogar20.ui.screen
 import android.app.Application
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.items  // ✅ IMPORTANTE
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,20 +13,27 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.huertohogar20.model.Order  // ✅ IMPORTANTE
 import com.example.huertohogar20.model.Product
+import com.example.huertohogar20.viewmodel.OrderViewModel
 import com.example.huertohogar20.viewmodel.ProductsViewModel
 import com.example.huertohogar20.viewmodel.ProductsViewModelFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AdminScreen() {
+fun AdminScreen(
+    orderViewModel: OrderViewModel = viewModel()
+) {
     val context = LocalContext.current
     val application = context.applicationContext as Application
     val productsViewModel: ProductsViewModel = viewModel(
         factory = ProductsViewModelFactory(application)
     )
-    val products by productsViewModel.products.collectAsState()
 
+    val products by productsViewModel.products.collectAsState()
+    val orders by orderViewModel.orders.collectAsState()
+
+    var selectedTab by remember { mutableStateOf(0) }
     var showAddDialog by remember { mutableStateOf(false) }
     var productToEdit by remember { mutableStateOf<Product?>(null) }
 
@@ -38,8 +43,10 @@ fun AdminScreen() {
 
     Scaffold(
         floatingActionButton = {
-            FloatingActionButton(onClick = { showAddDialog = true }) {
-                Icon(Icons.Default.Add, contentDescription = "Agregar producto")
+            if (selectedTab == 0) {
+                FloatingActionButton(onClick = { showAddDialog = true }) {
+                    Icon(Icons.Default.Add, contentDescription = "Agregar producto")
+                }
             }
         }
     ) { padding ->
@@ -47,35 +54,70 @@ fun AdminScreen() {
             Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(16.dp)
         ) {
-            Text(
-                "Panel de Administración",
-                style = MaterialTheme.typography.headlineMedium
-            )
-            Spacer(Modifier.height(16.dp))
-
-            Text(
-                "Gestión de Productos",
-                style = MaterialTheme.typography.titleMedium
-            )
-            Spacer(Modifier.height(8.dp))
-
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+            // Header
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = MaterialTheme.colorScheme.primaryContainer,
+                tonalElevation = 4.dp
             ) {
-                items(products) { product ->
-                    ProductAdminCard(
-                        product = product,
-                        onEdit = { productToEdit = it },
-                        onDelete = { productsViewModel.deleteProduct(it) }
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Text(
+                        "Panel de Administración",
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                    Text(
+                        "Gestión completa del sistema",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 }
             }
-        }
-    }
 
-    // Dialog para agregar producto
+            // Tabs
+            TabRow(selectedTabIndex = selectedTab) {
+                Tab(
+                    selected = selectedTab == 0,
+                    onClick = { selectedTab = 0 },
+                    text = { Text("Productos") },
+                    icon = { Icon(Icons.Default.ShoppingCart, null) }
+                )
+                Tab(
+                    selected = selectedTab == 1,
+                    onClick = { selectedTab = 1 },
+                    text = { Text("Pedidos") },
+                    icon = { Icon(Icons.Default.List, null) }
+                )
+                Tab(
+                    selected = selectedTab == 2,
+                    onClick = { selectedTab = 2 },
+                    text = { Text("Estadísticas") },
+                    icon = { Icon(Icons.Default.Info, null) }
+                )
+            }
+
+            // Content
+            when (selectedTab) {
+                0 -> ProductsTab(
+                    products = products,
+                    onEdit = { productToEdit = it },
+                    onDelete = { productsViewModel.deleteProduct(it) }
+                )
+                1 -> OrdersTab(orders = orders)
+                2 -> StatsTab(
+                    totalProducts = products.size,
+                    totalOrders = orders.size,
+                    totalRevenue = orders.sumOf { order ->
+                        order.items.sumOf { item ->
+                            item.precio * item.cantidad
+                        }
+                    }
+                )
+            }
+
     if (showAddDialog) {
         ProductFormDialog(
             product = null,
@@ -87,7 +129,6 @@ fun AdminScreen() {
         )
     }
 
-    // Dialog para editar producto
     productToEdit?.let { product ->
         ProductFormDialog(
             product = product,
@@ -97,6 +138,48 @@ fun AdminScreen() {
                 productToEdit = null
             }
         )
+    }
+}
+
+@Composable
+fun ProductsTab(
+    products: List<Product>,
+    onEdit: (Product) -> Unit,
+    onDelete: (Product) -> Unit
+) {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                "Total: ${products.size} productos",
+                style = MaterialTheme.typography.titleMedium
+            )
+            Text(
+                "Stock total: ${products.sumOf { it.stock }}",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.secondary
+            )
+        }
+        Spacer(Modifier.height(12.dp))
+
+        LazyColumn(
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(products) { product ->
+                ProductAdminCard(
+                    product = product,
+                    onEdit = onEdit,
+                    onDelete = onDelete
+                )
+            }
+        }
     }
 }
 
@@ -155,6 +238,177 @@ fun ProductAdminCard(
     }
 }
 
+@Composable
+fun OrdersTab(orders: List<Order>) {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        Text(
+            "Total de pedidos: ${orders.size}",
+            style = MaterialTheme.typography.titleMedium
+        )
+        Spacer(Modifier.height(12.dp))
+
+        if (orders.isEmpty()) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    "No hay pedidos registrados",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        } else {
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(orders) { order ->
+                    OrderAdminCard(order)
+                }
+            }
+        }
+    }
+}
+
+        @Composable
+        fun OrderAdminCard(order: Order) {
+            // Calcular total fuera del Composable
+            val totalOrder = remember(order) {
+                order.items.sumOf { item ->
+                    item.precio * item.cantidad
+                }
+            }
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer
+                )
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(12.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Pedido #${order.id}",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Text(
+                            text = order.estado,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = when (order.estado) {
+                                "Entregado" -> MaterialTheme.colorScheme.primary
+                                "En camino" -> MaterialTheme.colorScheme.tertiary
+                                else -> MaterialTheme.colorScheme.secondary
+                            }
+                        )
+                    }
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = "Dirección: ${order.direccion}",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    Text(
+                        text = "Total: $${"%.2f".format(totalOrder)}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+        }
+
+@Composable
+fun StatsTab(
+    totalProducts: Int,
+    totalOrders: Int,
+    totalRevenue: Double
+) {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Text(
+            "Estadísticas Generales",
+            style = MaterialTheme.typography.titleLarge
+        )
+
+        StatCard(
+            title = "Total Productos",
+            value = totalProducts.toString(),
+            icon = Icons.Default.ShoppingCart,
+            color = MaterialTheme.colorScheme.primary
+        )
+
+        StatCard(
+            title = "Total Pedidos",
+            value = totalOrders.toString(),
+            icon = Icons.Default.List,
+            color = MaterialTheme.colorScheme.secondary
+        )
+
+        StatCard(
+            title = "Ingresos Totales",
+            value = "$${"%.2f".format(totalRevenue)}",
+            icon = Icons.Default.Info,
+            color = MaterialTheme.colorScheme.tertiary
+        )
+    }
+}
+
+@Composable
+fun StatCard(
+    title: String,
+    value: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    color: androidx.compose.ui.graphics.Color
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = color.copy(alpha = 0.1f)
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = color
+                )
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text = value,
+                    style = MaterialTheme.typography.displaySmall,
+                    color = color
+                )
+            }
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(48.dp),
+                tint = color
+            )
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProductFormDialog(
@@ -170,48 +424,19 @@ fun ProductFormDialog(
     var imagen by remember { mutableStateOf(product?.imagen ?: "no_disponible.png") }
     var categoria by remember { mutableStateOf(product?.categoria ?: "Productos Orgánicos") }
 
-    val imageOptions = listOf(
-        "aceite_oliva.png",
-        "brocoli.png",
-        "espinaca.png",
-        "granola.png",
-        "leche_entera.png",
-        "mantequilla.png",
-        "manzanas_fuji.png",
-        "miel_organica.png",
-        "naranja_valencia.png",
-        "pimientos_tricolores.png",
-        "platano_cavendish.png",
-        "queso_fresco.png",
-        "quinua_organica.png",
-        "yogur_natural.png",
-        "zanahoria_organica.png",
-        "zapallo.png",
-        "no_disponible.png"
-    )
-
-    val categorias = listOf(
-        "Frutas Frescas",
-        "Verduras Orgánicas",
-        "Productos Orgánicos",
-        "Productos Lácteos"
-    )
-
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(if (product == null) "Agregar Producto" else "Editar Producto") },
         text = {
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
+                modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 OutlinedTextField(
                     value = codigo,
                     onValueChange = { codigo = it },
                     label = { Text("Código") },
-                    enabled = product == null, // No editable si ya existe
+                    enabled = product == null,
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -227,7 +452,7 @@ fun ProductFormDialog(
                     onValueChange = { descripcion = it },
                     label = { Text("Descripción") },
                     modifier = Modifier.fillMaxWidth(),
-                    maxLines = 3
+                    maxLines = 2
                 )
 
                 OutlinedTextField(
@@ -243,70 +468,6 @@ fun ProductFormDialog(
                     label = { Text("Stock") },
                     modifier = Modifier.fillMaxWidth()
                 )
-
-                // Dropdown para imagen
-                var expandedImg by remember { mutableStateOf(false) }
-                ExposedDropdownMenuBox(
-                    expanded = expandedImg,
-                    onExpandedChange = { expandedImg = !expandedImg }
-                ) {
-                    OutlinedTextField(
-                        value = imagen,
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text("Imagen") },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedImg) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .menuAnchor()
-                    )
-                    ExposedDropdownMenu(
-                        expanded = expandedImg,
-                        onDismissRequest = { expandedImg = false }
-                    ) {
-                        imageOptions.forEach { img ->
-                            DropdownMenuItem(
-                                text = { Text(img) },
-                                onClick = {
-                                    imagen = img
-                                    expandedImg = false
-                                }
-                            )
-                        }
-                    }
-                }
-
-                // Dropdown para categoría
-                var expandedCat by remember { mutableStateOf(false) }
-                ExposedDropdownMenuBox(
-                    expanded = expandedCat,
-                    onExpandedChange = { expandedCat = !expandedCat }
-                ) {
-                    OutlinedTextField(
-                        value = categoria,
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text("Categoría") },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedCat) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .menuAnchor()
-                    )
-                    ExposedDropdownMenu(
-                        expanded = expandedCat,
-                        onDismissRequest = { expandedCat = false }
-                    ) {
-                        categorias.forEach { cat ->
-                            DropdownMenuItem(
-                                text = { Text(cat) },
-                                onClick = {
-                                    categoria = cat
-                                    expandedCat = false
-                                }
-                            )
-                        }
-                    }
-                }
             }
         },
         confirmButton = {

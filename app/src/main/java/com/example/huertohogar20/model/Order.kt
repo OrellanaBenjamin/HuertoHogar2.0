@@ -14,3 +14,8 @@ data class Order(
     val timestamp: Long,
     val pagoEstado: String = "pendiente"
 )
+data class OrderWithItems(
+    val order: Order,
+    val items: List<OrderItem>
+)
+
